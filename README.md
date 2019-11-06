@@ -1,25 +1,17 @@
 # Honda Accord Prices
+
 Brian Yi
 
 ## Introduction
 
-This project will be split into two parts:
+**Purpose:** When looking to purchase a used car, I always find it difficult to gauge prices since used cars vary in mileage and age. Furthermore, I don't know if there is a significant difference in pricing between German, Japanese, or American cars of varying types (sedan or SUV). It is especially difficult to tell which car model is most worth its price. Even though these questions have more definitive answers when purchasing a new car, it can be quite different for used cars since certain cars may depreciate faster than others. In this project, we are building a model that can assist in evaluating the price of used cars based on all these features.
 
-**Part 1:**
+**Method of Approach:** We will be using the UsedCarLot dataset that has the following five variables: `age`, `price`, `mileage`, `model`, `make`, and `year`. This project will be split into two parts in predicting our response variable, `price`:
 
-We will be focusing on modeling and statistical analysis using the following models:
+**Part 1:** Since I want to purchase a Honda Accord, we will determine what prices I should be expecting based on an Accord's `age` and `mileage`. We build a few different linear and polynomial regression models with these two variables to predict `price`. We do some hypothesis testing to briefly evaluate these models before using the nested F-test to determine the best model. Next, we conduct some residual analysis for our best model to check for constant variance, normality, and zero mean. Finally, we take our model out for a spin and predict the prices for a Honda Accord that I would be looking to buy.
 
-    - Single Linear Regression
-    - Multiple Linear Regression
-    - Polynomial Regression (one variable)
-    - Polynomial Regression (two variables)
+**Part 2:** For the second part of this project, we want to see if the average prices of cars are different between various car models. We use a one-way ANOVA test, with `model` as the predictor and `price` as the response variable, to detect if any car model has a different mean price from the others.
 
-The dataset we will be using is the UsedCarLot dataset has the following five variables: `age`, `price`, `mileage`, `model`, `make`, and `year`. Our target variable to predict is `price`, and the predictors we will focus on are `age` and `mileage`. We don't consider `model` and `make` since we will only be analyzing the price of Honda Accords. We will use residual analysis visualizations and various hypothesis tests to evaluate individual models. The nested F-test will be our main test used to compare different models and help us to determine the best model for predicting Honda Accord prices.
+We also want to determine whether cars with a different country of manufacture and of a different type (sedan or SUV) have a different mean price. Therefore, we add two new predictors, `type` and `country`, in order to conduct this analysis. We use a two-way ANOVA test, with the independent variables being `type` and `country`, to predict `price`.
 
-**Part 2:**
-
-We will be focusing on one-way ANOVA and two-way ANOVA tests for this part to investigate the variance withing roup means within the `UsedCar` dataframe we will create. We will add two new variables, `type` and `country`, in order to conduct these tests. `type` will be either sedan or SUV depending on the car. `country` represents a car's country of manufacture, which will either be Japan, Germany, or the US.
-
-For our one-way ANOVA test, the independent variable we are interested in is the `model` variable with respect to `price`. In other words, we want to determine whether different `model` cars have different `prices`.
-
-For our two-way ANOVA test, the independent variables we are interested are `type` and `country` with respect to `price`. This time, we want to see whether a different `type` of car with different `country` origins will have different `prices`.
+**Results:** The model we found (multiple linear regression with `age` and `mileage` as predictors) for predicting Honda Accord prices did a good job in fitting our dataset based on the metrics we evaluated it with. Our analysis of whether car prices differed based on model, type (sedan or SUV), and country of manufacture revealed that German cars were the most expensive. We do note that this result is heavily influenced by our limited dataset.
