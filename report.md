@@ -5,29 +5,20 @@ Brian Yi
 Introduction
 ============
 
-This project will be split into two parts:
+**Purpose:** When looking to purchase a used car, I always find it difficult to gauge prices since used cars vary in mileage and age. Furthermore, I don't know if there is a significant difference in pricing between German, Japanese, or American cars of varying types (sedan or SUV). It is especially difficult to tell which car model is most worth its price. Even though these questions have more definitive answers when purchasing a new car, it can be quite different for used cars since certain cars may depreciate faster than others. In this project, we are building a model that can assist in evaluating the price of used cars based on all these features.
 
-**Part 1:**
+**Method of Approach:** We will be using the UsedCarLot dataset that has the following five variables: `age`, `price`, `mileage`, `model`, `make`, and `year`. This project will be split into two parts in predicting our response variable, `price`:
 
-We will be focusing on modeling and statistical analysis using the following models:
+**Part 1:** Since I want to purchase a Honda Accord, we will determine what prices I should be expecting based on an Accord's `age` and `mileage`. We build a few different linear and polynomial regression models with these two variables to predict `price`. We do some hypothesis testing to briefly evaluate these models before using the nested F-test to determine the best model. Next, we conduct some residual analysis for our best model to check for constant variance, normality, and zero mean. Finally, we take our model out for a spin and predict the prices for a Honda Accord that I would be looking to buy.
 
-    - Single Linear Regression
-    - Multiple Linear Regression
-    - Polynomial Regression (one variable)
-    - Polynomial Regression (two variables)
+**Part 2:** For the second part of this project, we want to see if the average prices of cars are different between various car models. We use a one-way ANOVA test, with `model` as the predictor and `price` as the response variable, to detect if any car model has a different mean price from the others.
 
-The dataset we will be using is the UsedCarLot dataset has the following five variables: `age`, `price`, `mileage`, `model`, `make`, and `year`. Our target variable to predict is `price`, and the predictors we will focus on are `age` and `mileage`. We don't consider `model` and `make` since we will only be analyzing the price of Honda Accords. We will use residual analysis visualizations and various hypothesis tests to evaluate individual models. The nested F-test will be our main test used to compare different models and help us to determine the best model for predicting Honda Accord prices.
+We also want to determine whether cars with a different country of manufacture and of a different type (sedan or SUV) have a different mean price. Therefore, we add two new predictors, `type` and `country`, in order to conduct this analysis. We use a two-way ANOVA test, with the independent variables being `type` and `country`, to predict `price`.
 
-**Part 2:**
+**Results:** The model we found (multiple linear regression with `age` and `mileage` as predictors) for predicting Honda Accord prices did a good job in fitting our dataset based on the metrics we evaluated it with. Our analysis of whether car prices differed based on model, type (sedan or SUV), and country of manufacture revealed that German cars were the most expensive. We do note that this result is heavily influenced by our limited dataset.
 
-We will be focusing on one-way ANOVA and two-way ANOVA tests for this part to investigate the variance withing roup means within the `UsedCar` dataframe we will create. We will add two new variables, `type` and `country`, in order to conduct these tests. `type` will be either sedan or SUV depending on the car. `country` represents a car's country of manufacture, which will either be Japan, Germany, or the US.
-
-For our one-way ANOVA test, the independent variable we are interested in is the `model` variable with respect to `price`. In other words, we want to determine whether different `model` cars have different `prices`.
-
-For our two-way ANOVA test, the independent variables we are interested are `type` and `country` with respect to `price`. This time, we want to see whether a different `type` of car with different `country` origins will have different `prices`.
-
-Part 1
-======
+Part 1: Honda Accord Models
+===========================
 
 We first import the UsedCarLot dataset and select a subset of 40 observations for the Honda Accord model.
 
@@ -41,7 +32,7 @@ Accord = sample_n(subset(UsedCarLot, model == "Accord"), 40)
 Model \#1: Linear Regression
 ----------------------------
 
-We first take a peek at the dataset.
+First, we take a peek at the dataset.
 
 ``` r
 # Look at dataset
@@ -60,11 +51,11 @@ head(Accord)
 
 ------------------------------------------------------------------------
 
-Next we created a linear model by using `age` to predict `price`.
+We create a linear regression model by using `age` to predict the `price` of Honda Accords.
 
 ``` r
 # Creating a linear model
-(mod1 = lm(price~age, data=Accord))
+(mod1 = lm(price ~ age, data = Accord))
 ```
 
     ## 
@@ -75,121 +66,25 @@ Next we created a linear model by using `age` to predict `price`.
     ## (Intercept)          age  
     ##      43.861       -2.365
 
-The least squares regression line is `price` = 43.861 - 2.365`age`. A brand new car of `age` zero would be at a `price` of 43,000 dollars. Each year that the car ages, the `price` drops by 2,365 dollars since the slope is -2.365. The slope being negative makes sense because the `price` of car should drop as a car ages.
+The least squares regression line is `price = 43.861 - 2.365age`. A brand new car of age zero would be at a price of 43,000 dollars. Each year that the car ages, the price drops by 2,365 dollars since the slope is -2.365. The slope being negative makes sense because the price of car should drop as a car ages.
 
 ------------------------------------------------------------------------
 
-We plot `mod1` along with the observations.
+We plot Model \#1 with our data to take an initial look at its fit.
 
 ``` r
-# Plotting observations along with mod1
-plot(price~age, data=Accord)
+# Plotting observations along with Model #1
+plot(price ~ age, data = Accord)
 abline(mod1)
 ```
 
 ![](report_code_files/figure-markdown_github/unnamed-chunk-5-1.png)
 
-At first glance, the linear model seems to fit the dataset decently.
+At first glance, the linear model seems to fit the dataset well.
 
 ------------------------------------------------------------------------
 
-We analyze the residuals to determine the accuracy of our model.
-
-``` r
-# Residuals vs fits plot
-plot(mod1$residuals~mod1$fitted.values)
-abline(a=0,b=0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-6-1.png)
-
-``` r
-# Standardized residuals vs fits plot
-plot(rstandard(mod1)~mod1$fitted.values)
-abline(a=0,b=0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-6-2.png)
-
-``` r
-# Boxplot of residuals
-boxplot(mod1$residuals)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-6-3.png)
-
-The residuals versus fits plot is useful in assessing the linearity of a model. The plot shows a slight curve moving from the left to right throughout the data set. Furthermore, a lot of the data seems to be clumped at the right side of the graph. This signifies that linearity does not hold too well in our model.
-
-We then looked at a standarized residual vs fits plot to see if any residuals are extreme. There is a point with a value of 2 which makes it a mild point. There is another point with a value of three, indicating it to be an outlier point since it is very far from the residual line. There are also two points on the left that would be considered influential points due to their distance from the rest of the predictors.
-
-The boxplot confirms that there is one outlier point, as you can see it is roughly more than 1.5 IQR's beyond Q3.
-
-------------------------------------------------------------------------
-
-We further conduct some residual analysis.
-
-``` r
-# Residual histogram
-hist(mod1$residuals)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-7-1.png)
-
-``` r
-# Normal quantile plot
-qqnorm(mod1$residuals)
-qqline(mod1$residuals)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-7-2.png)
-
-The histogram of the residuals show that the normality of the model is not perfect since there is a right skew.
-
-The normality is explored further in the normal quantile plot that shows many of the points throughout the data not lining perfectly with the line, as well as showing a few data points that are off the line on both the left and right sides of the plot.
-
-------------------------------------------------------------------------
-
-We then look at the standarized and studentized maximum residual to detect potential outliers.
-
-``` r
-# Max residual, standarized, and studentized
-max(abs(residuals(mod1)))
-```
-
-    ## [1] 14.58903
-
-``` r
-max(abs(rstandard(mod1)))
-```
-
-    ## [1] 2.835998
-
-``` r
-max(abs(rstudent(mod1)))
-```
-
-    ## [1] 3.151787
-
-The car with the largest residual has a residual with magnitude 14.58903. The standarized residual for this car is 2.835998 and the studentized residual is 3.151787. The max standarized and studentized residuals differ only slightly so this point does not tremendously influence the overall model.
-
-------------------------------------------------------------------------
-
-We found the 90% confidence interval for our prediction model.
-
-``` r
-# 90% confidence interval
-confint(mod1, level=0.90)
-```
-
-    ##                   5 %      95 %
-    ## (Intercept) 41.455904 46.265709
-    ## age         -2.655714 -2.075207
-
-I am 90% confidence the true mean lies on the interval (-2.075207, -2.655714). This means that we are 90% confident that as as `age` increases per year, the `price` decreases by between (-2.075207, -2.655714) for all Honda Accords.
-
-------------------------------------------------------------------------
-
-We find the Pearson's coefficient to investigate the correlation between `price` and `age`.
+We conduct a t-test for correlation to identify any correlation between the `age` and `price` of a Honda Accord.
 
 ``` r
 # t-test for correlation
@@ -208,11 +103,11 @@ cor.test(Accord$price, Accord$age)
     ##        cor 
     ## -0.9123819
 
-The null hypothesis is that the population correlation between `price` and `age` is zero. The alternative hypothesis is that the population correlation between `price` and `age` is not zero. The t-statistic is -13.74 meaning the correlation between `price` and `age` is not zero. Since the p-value of 2.547e-16 is less than 0.05, the null hypothesis is false not due to chance. Therefore, the alternative hypothesis is true indicating that there is a population correlation between the `price` and `age` of Honda Accords.
+The null hypothesis is that the population correlation between `price` and `age` is zero. The alternative hypothesis is that the population correlation between `price` and `age` is not zero. The t-statistic is -13.74 meaning the correlation between `price` and `age` is not zero. Since the p-value of 2.547e-16 is less than 0.05, the null hypothesis is false not due to chance. Therefore, the alternative hypothesis is true indicating that there is a correlation between the `price` and `age` of Honda Accords.
 
 ------------------------------------------------------------------------
 
-We conduct an ANOVA test for regression.
+We conduct an ANOVA test for regression as another metric for evaluating correlation between `price` and `age`.
 
 ``` r
 # ANOVA test for regression
@@ -228,102 +123,16 @@ anova(mod1)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-The null hypothesis is that the slope is zero. The alternative hypothesis is that the slope is not zero. The F-statistic is way larger than 1, indicating that the alternative hypothesis is correct. The p-value of 2.547e-16 is less than 0.05 so the null hypothesis is false not due to chance. Therefore the alternative hypothesis is true indicating that `price` and `age` have some sort of relationship for Honda Accords.
-
-------------------------------------------------------------------------
-
-Using our model, we predicted the value of a 5 year old Honda Accord.
-
-``` r
-# Calculate the predicted value of a 5 year old Honda Accord
-newx=data.frame(age=5)
-predict.lm(mod1, newx, interval="confidence", level=.90)
-```
-
-    ##        fit      lwr      upr
-    ## 1 32.03351 30.54923 33.51778
-
-``` r
-predict.lm(mod1, newx, interval="prediction", level=.90)
-```
-
-    ##        fit      lwr      upr
-    ## 1 32.03351 23.08895 40.97807
-
-The predicted value of the `price` for a 5 year old Honda Accord is approximately $32,033.51. The 90% confidence interval for the mean `price` at an `age` of 5 is (30.54923, 33.51778). The 90% prediction interval for the mean `price` of an individual 5 year old car is (23.08895, 40.97807).
-
-------------------------------------------------------------------------
-
-We try some transformations to see if we can find a better model.
-
-``` r
-# Various transformations
-tf1=lm(formula = log(price) ~ age, data = Accord)
-tf2=lm(formula = price ~ log(age), data = Accord)
-tf3=lm(formula = log(price) ~ log(age), data = Accord)
-tf4=lm(formula = sqrt(price) ~ age, data = Accord)
-tf5=lm(formula = 1/(price) ~ age, data = Accord)
-tf6=lm(formula = price^2 ~ age, data = Accord)
-tf7=lm(formula = exp(price) ~age, data = Accord)
-
-plot(tf1$residuals~tf1$fitted.values)
-abline(a=0,b=0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-13-1.png)
-
-``` r
-plot(tf2$residuals~tf2$fitted.values)
-abline(a=0,b=0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-13-2.png)
-
-``` r
-plot(tf3$residuals~tf3$fitted.values)
-abline(a=0,b=0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-13-3.png)
-
-``` r
-plot(tf4$residuals~tf4$fitted.values)
-abline(a=0,b=0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-13-4.png)
-
-``` r
-plot(tf5$residuals~tf5$fitted.values)
-abline(a=0,b=0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-13-5.png)
-
-``` r
-plot(tf6$residuals~tf6$fitted.values)
-abline(a=0,b=0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-13-6.png)
-
-``` r
-plot(tf7$residuals~tf6$fitted.values)
-abline(a=0,b=0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-13-7.png)
-
-After trying various transformations, the transformation of taking the `log(price)` seems to display the most randomness for the residuals vs fitted values plot. Although a lot of data points are grouped on the right side again, the overall pattern throughout the plot is a lot more random in comparison to to the original model. This indicates that there is more linearity in the transformed model.
+The null hypothesis is that the slope is zero. The alternative hypothesis is that the slope is not zero. The F-statistic is way larger than 1, indicating that the alternative hypothesis is correct. The p-value of 2.547e-16 is less than 0.05 so the null hypothesis is false not due to chance. Therefore the alternative hypothesis is true and we can again confirm that `price` and `age` have some sort of relationship for Honda Accords.
 
 Model \#2: Multiple linear regression
 -------------------------------------
 
-We create a multiple linear regression model with `age` and `mileage` as predictors for `price`.
+Next, we create a multiple linear regression model where we use `age` and `mileage` as variables to predict `price`.
 
 ``` r
 # Multiple linear regression model
-(mod2 = lm(formula=price~age+mileage, data=Accord))
+(mod2 = lm(price ~ age + mileage, data = Accord))
 ```
 
     ## 
@@ -336,35 +145,10 @@ We create a multiple linear regression model with `age` and `mileage` as predict
 
 ------------------------------------------------------------------------
 
-We first take a look at the largest residual for `mod2`.
+We conduct individual t-tests for slope to find correlation between each of the predictors `age` and `mileage`, and the target variable: `price`.
 
 ``` r
-# Standarized and studentized residuals
-max(abs(residuals(mod2)))
-```
-
-    ## [1] 15.03922
-
-``` r
-max(abs(rstandard(mod2)))
-```
-
-    ## [1] 3.321223
-
-``` r
-max(abs(rstudent(mod2)))
-```
-
-    ## [1] 3.910369
-
-The car with the largest residual has a residual with magnitude 15.03922. The standarized residual for this car is 3.321223 and the studentized residual is 3.910369. The max standarized and studentized residuals differ a significant amount so we consider this point an outlier that has influence on the overall model.
-
-------------------------------------------------------------------------
-
-We conduct a t-test to find corretation between the predictors `age` and `mileage`, and the target variable: `price`.
-
-``` r
-# t-test for correlation
+# t-test for slope
 summary(mod2)
 ```
 
@@ -388,11 +172,16 @@ summary(mod2)
     ## Multiple R-squared:  0.8735, Adjusted R-squared:  0.8666 
     ## F-statistic: 127.7 on 2 and 37 DF,  p-value: < 2.2e-16
 
-The null hypothesis for both predictors is that the slope is zero. The alternative hypothesis is that the slope is not zero. `age` has a t-statistic of -2.799 indicating that the sample slope is more than three standard deviations below a slope of zero. Along with a p-value of 0.00809 that is less than 0.05, we can reject the null hypothesis and say that `age` is a reasonable predictor for `price`. `mileage` has a t-value of -3.464, which again shows that the slope is more than three standard deviations below a slope of zero. A small p-value of 0.00136 below 0.05 again indicates that the null hypothesis is false, meaning that `mileage` is also a reasonable predictor for `price`.
+The null hypothesis for both predictors is that the slope is zero. The alternative hypothesis is that the slope is not zero.
+
+-   `age` has a t-statistic of -2.799 indicating that the sample slope is about three standard deviations below a slope of zero. Along with a p-value less than 0.05, we can reject the null hypothesis and say that `age` is a reasonable predictor for `price`.
+-   `mileage` has a t-value of -3.464, which indicates that the slope is more than three standard deviations below a slope of zero. The p-value is significant once again indicating that the null hypothesis is false. Thus, `mileage` is also a reasonable predictor for `price`.
+
+Individually, both predictors have a significant correlation with `price`.
 
 ------------------------------------------------------------------------
 
-We conduct a F-test to detect correlation between the predictors and `price`.
+More importantly, we want to know whether collectively the predictors have a correlation with `price`. Thus, we conduct a F-test of overall significance to detect any such correlation.
 
 ``` r
 # F-test
@@ -419,28 +208,28 @@ summary(mod2)
     ## Multiple R-squared:  0.8735, Adjusted R-squared:  0.8666 
     ## F-statistic: 127.7 on 2 and 37 DF,  p-value: < 2.2e-16
 
-The null hypothesis is that the coefficients for all the predictors is zero. The alternative hypothesis is that at least one of the coefficients is not zero. The F-statistic is 127.7, which is greater than 1, so we reject the null hypothesis and say that the alternative hypothesis is true. The p-value is 2.2e-16 which is less than 0.05 indicating this is not due to chance.
+The null hypothesis is that the coefficients for all the predictors is zero. The alternative hypothesis is that at least one of the coefficients is not zero. The F-statistic is 127.7, which is greater than 1, so we reject the null hypothesis and say that the alternative hypothesis is true. The p-value is 2.2e-16, which is less than 0.05, indicating that this is not due to chance. Thus, the alternative hypothesis is true, and at least one of our predictors has a correlation with the price of a Honda Accord.
 
 ------------------------------------------------------------------------
 
-Next we test for multicollinearity between `age` and `mileage`.
+We suspect that `age` and `mileage` might be related since the longer you have a car, the more mileage it should have on it. This relationship is known as multicollinearity, a characteristic we do not want to exist between any of our predictors. We check for multicollinearity by calculating the variance inflation factor for our model.
 
 ``` r
 # Checking VIF to determine multicollinearity
-VIF = 1/(1-summary(mod2)$r.squared)
+VIF = 1 / (1 - summary(mod2)$r.squared)
 VIF
 ```
 
     ## [1] 7.903922
 
-VIF is greater than five so we suspect multicollinearity. This means that there is a strong correlation between the two predictors, `age` and `mileage`.
+If there is no multicollinearity, the VIF value is close to 1. In this case, the VIF value is much greater than five, so there is a strong correlation between the two predictors, `age` and `mileage`. If there is such a strong correlation, we may consider transforming the variables or removing one of them from our model.
 
 Model \#3: Polynomial models
 ----------------------------
 
 **Quadratic Model**
 
-We first create a quadratic model.
+We test a few polynomial models to see if any fit our data better than our linear regression models.
 
 ``` r
 # Quadratic model
@@ -455,62 +244,9 @@ We first create a quadratic model.
     ## (Intercept)          age     I(age^2)  
     ##    46.45684     -3.21233      0.04545
 
-The prediction equation is: `price` = -3.21233`age` + 0.04545`age^2`.
-
 ------------------------------------------------------------------------
 
-We plot the quadratic model along with the data points.
-
-``` r
-# Plotting mod3
-b0.mod3 = summary(mod3)$coefficient[1,1]
-b1.mod3 = summary(mod3)$coefficient[2,1] 
-b2.mod3 = summary(mod3)$coefficient[3,1]
-plot(price ~ age, data = Accord, main = "Quadratic Model", ylim = c(-5,50), xlim = c(0,40))
-curve(b0.mod3 + b1.mod3*x + b2.mod3*x^2, add = TRUE)
-abline(0,0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-20-1.png)
-
-Looking at the quadratic fit on the scatterplot of the data, we see that the quadratic fit matches the data pretty well and is a decent fit.
-
-------------------------------------------------------------------------
-
-We now explore normality and variance through some error analysis by looking at the residuals.
-
-``` r
-# Residual vs fits plot
-plot(mod3$residuals~mod3$fitted.values)
-abline(a=0,b=0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-21-1.png)
-
-``` r
-# Residuals histogram
-hist(mod3$residuals)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-21-2.png)
-
-``` r
-# Normal quantile plot
-qqnorm(mod3$residuals)
-qqline(mod3$residuals)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-21-3.png)
-
-The residuals versus fits plot shows a slight pattern in that the distribution above and below the line is not completely even, indicating that the error distribution is not perfectly centered at zero. The variance of the response changes primarily towards the right side of the residuals versus fits plot, indicating that there is not a perfect uniform spread.
-
-The histogram of the residuals show that the normality of the model is not perfect since there is a slight right skew.
-
-The imperfect normality is explored further in the normal quantile plot, which shows that a few of the points curve away from the straight line at the right side of the plot.
-
-------------------------------------------------------------------------
-
-We conduct an F-test for regression to analyze the predictive ability of the quadratic model.
+We conduct an F-test for regression to compare our quadratic model with an intercept-only model (no predictors).
 
 ``` r
 # F-test
@@ -541,32 +277,20 @@ The null hypothesis is that the coefficients of all the predictors is zero. The 
 
 ------------------------------------------------------------------------
 
-We now predict the price of a 7-year-old Honda Accord with our quadratic model.
-
-``` r
-# Predict the price of a 7-year-old Honda Accord
-newx = data.frame(age = 7)
-predict.lm(mod3, newx, interval = "prediction", level = .90)
-```
-
-    ##        fit      lwr      upr
-    ## 1 26.19772 17.11372 35.28173
-
-The predicted value of the price of a 7-year-old Honda Accord is approximately $25.99941 thousand. The 90% prediction interval for the price of an individual 7-year-old Honda Accord is (17.11372, 35.28173). This translates to that we are 90% confident that a single random 7-year-old Honda Accord will be between the prices of 17,113.72 and 35,281.73 thousand dollars.
-
-------------------------------------------------------------------------
-
 Let us evaluate the cons of the model.
 
 ``` r
-plot(price ~ age, data = Accord, main = "Quadratic Model", ylim = c(-5,50), xlim = c(0,70))
-curve(b0.mod3 + b1.mod3*x + b2.mod3*x^2, add = TRUE)
+b0.mod3 = summary(mod3)$coefficient[1, 1]
+b1.mod3 = summary(mod3)$coefficient[2, 1] 
+b2.mod3 = summary(mod3)$coefficient[3, 1]
+plot(price ~ age, data = Accord, main = "Quadratic Model", ylim = c(-5, 50), xlim = c(0, 70))
+curve(b0.mod3 + b1.mod3 * x + b2.mod3 * x^2, add = TRUE)
 abline(0,0)
 ```
 
-![](report_code_files/figure-markdown_github/unnamed-chunk-24-1.png)
+![](report_code_files/figure-markdown_github/unnamed-chunk-14-1.png)
 
-According to the graph above, when a Honda Accord is approximately 20 years of age, the car's predicted price becomes zero and then becomes negative. Between the ages of 20 and 50, the predicted price remains negative. At approximately 50 years in age, the a Honda Accord's predicted value goes from negative to zero again, and from then on increases (positively). By the time the car is 70 years old, it is worth the same amount as if it were brand new. This does not make sense since cars do not suddenly grow in value after getting older. Only certain unique antique cards gain value after being old for a long time but I do not see that happening for Honda Accords. Thus, our model is flawed starting from the age of appxomiately 20 and older.
+According to the graph above, when a Honda Accord is approximately 20 years of age, the car's predicted price becomes zero and then becomes negative. Between the ages of 20 and 50, the predicted price remains negative. At approximately 50 years in age, a Honda Accord's predicted value goes from negative to zero again, and from then on increases (positively). By the time the car is 70 years old, it is worth the same amount as if it were brand new. This does not make sense since cars do not suddenly grow in value after getting older. Only certain unique antique cards gain value after being old for a long time, but I do not see this being the case for Honda Accords. Thus, our model is flawed starting from the age of approximately 20 and older.
 
 ------------------------------------------------------------------------
 
@@ -603,13 +327,13 @@ anova(mod3, mod3Cubic)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-For a nested F-Test, the null hypothesis is that the coefficients of all the additonal predictors is zero. The alternative hypothesis is that at least one of the coefficients of the additional predictors is not zero. The F-statistic is 3.7299, which is not equal to one, indicating we should reject the null hypothesis. Unfortunately, the p-value of 0.06135 isn't significant so we fail to reject the null hypothesis. In other words, the addition of the cubic term is not a significant improvement in predicting the price of a Honda Accord.
+For a nested F-Test, the null hypothesis is that the coefficients of all the additonal predictors is zero. The alternative hypothesis is that at least one of the coefficients of the additional predictors is not zero. The F-statistic is 3.7299, which is not equal to one, indicating we should reject the null hypothesis. Unfortunately, a p-value of 0.06135 isn't significant so we fail to reject the null hypothesis. In other words, the addition of the cubic term is not a significant improvement in predicting the price of a Honda Accord.
 
 ------------------------------------------------------------------------
 
 **Quartic Model**
 
-We conduct a nested F-test to determine whether the addition of a cubic and quartic terms improves our quadratic model.
+We again conduct a nested F-test to determine whether the addition of a cubic and quartic term improves our quadratic model.
 
 ``` r
 # Quartic model
@@ -636,13 +360,13 @@ anova(mod3, mod3Quartic)
     ## 1     37 1008.49                           
     ## 2     35  909.33  2    99.165 1.9084 0.1634
 
-For a nested F-Test, the null hypothesis is that the coefficients of all the additonal predictors is zero. The alternative hypothesis is that at least one of the coefficients of the additional predictors is not zero. The F-statistic is 1.9084, which is not equal to one, indicating we should reject the null hypothesis. However, the p-value of 0.1634 is not significant so we can say that the null hypothesis is true. In other words, the addition of the cubic and quartic terms is not an improvement in predicting the price of a Honda Accord.
+The F-statistic is 1.9084, which is not equal to one, indicating we should reject the null hypothesis. However, a p-value of 0.1634 is once again not significant so the addition of the cubic and quartic terms is not an improvement in predicting the price of a Honda Accord.
 
 ------------------------------------------------------------------------
 
 **Quintic Model**
 
-We conduct a nested F-test to determine whether the addition of a cubic, quartic, and quintic terms improves our quadratic model.
+We now check to see if the addition of a cubic, quartic, and quintic term improves our quadratic model.
 
 ``` r
 # Quintic Model
@@ -672,19 +396,18 @@ anova(mod3, mod3Quintic)
     ## 1     37 1008.49                          
     ## 2     34  873.46  3    135.03 1.752 0.1749
 
-For a nested F-Test, the null hypothesis is that the coefficients of all the additonal predictors is zero. The alternative hypothesis is that at least one of the coefficients of the additional predictors is not zero. The F-statistic is 1.752, which is not equal to one, indicating we should reject the null hypothesis. The p-value of 0.1749 is not significant so we can say the null hypothesis is true. In other words, the addition of the cubic, quartic, and quintic terms is not a significant improvement in predicting the price of a Honda Accord.
+The F-statistic is 1.752, which is not equal to one, indicating we should reject the null hypothesis. A p-value of 0.1749 is also not significant so the addition of the cubic, quartic, and quintic terms is not a significant improvement in predicting the price of a Honda Accord.
 
 **Our best polynomial model is the quadratic model.**
 
-Model \#4: Complete second order model
+Model \#4: Complete Second Order Model
 --------------------------------------
 
-We will now explore a complete second order model that includes both `age` and `mileage`.
+We will now explore a complete second order model that use `age`, `mileage`, and the interaction term `age*mileage` to predict `price`.
 
 ``` r
 # Complete second order model
-mod4 = lm(price ~ age + mileage + I(age^2) + I(mileage^2) + I(age*mileage), data = Accord)
-mod4
+(mod4 = lm(price ~ age + mileage + I(age^2) + I(mileage^2) + I(age*mileage), data = Accord))
 ```
 
     ## 
@@ -700,40 +423,7 @@ mod4
 
 ------------------------------------------------------------------------
 
-Let us take a look at the residuals of this model.
-
-``` r
-# Residual vs fits plot
-plot(mod4$residuals~mod4$fitted.values)
-abline(a=0,b=0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-29-1.png)
-
-``` r
-# Residual histogram
-hist(mod4$residuals)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-29-2.png)
-
-``` r
-# Normal quantile plot
-qqnorm(mod4$residuals)
-qqline(mod4$residuals)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-29-3.png)
-
-The residuals versus fits plot shows a slight pattern such that the distribution above and below the line is not completely even, indicating that the error distribution is not perfectly centered at zero. The variance of the response increases at the right portion of the residuals versus fits plot, indicating that there is not a perfectly uniform spread.
-
-The histogram of the residuals show that the normality of the model is not perfect since there is a distinct right skew.
-
-The imperfect normality is explored further in the normal quantile plot, which shows that many of the points curve away from the straight line at both ends of the curve.
-
-------------------------------------------------------------------------
-
-We conduct the F-test for regression to see the impact of our independent variables.
+We conduct the F-test of overall significance regression to compare our complete second order model with an intercept-only model.
 
 ``` r
 # F-test for regression
@@ -764,14 +454,14 @@ summary(mod4)
     ## Multiple R-squared:  0.8855, Adjusted R-squared:  0.8686 
     ## F-statistic: 52.58 on 5 and 34 DF,  p-value: 4.949e-15
 
-For the F-test, the null hypothesis is that the coefficients of all the predictors is zero. The alternative hypothesis is that at least one of the coefficients of the predictors is not zero. The F-statistic is 52.58, which is greater than 1, so we want to reject the null hypothesis and say that the alternative hypothesis is true. The p-value is 4.49e-15, which is less than 0.05, indicating that this is not due to chance. Therefore, the F-test explains a significant amount of variability within our model and indicates at least one of the predictors is effective in this model.
+The null hypothesis is that the coefficients of all the predictors is zero. The alternative hypothesis is that at least one of the coefficients of the predictors is not zero. The F-statistic is 52.58, which is greater than 1, so we want to reject the null hypothesis and say that the alternative hypothesis is true. The p-value is 4.49e-15, which is less than 0.05, indicating that this is not due to chance. Therefore, the F-test explains a significant amount of variability within our model and indicates at least one of the predictors is effective in this model.
 
 ------------------------------------------------------------------------
 
 Model Comparison
 ----------------
 
-Let us compare Model \#1 (single linear) to Model \#2 (multiple linear)
+We first compare Model \#1 (simple linear) to Model \#2 (multiple linear) through a nested F-test.
 
 ``` r
 # Nested F-test between Model #1 and Model #2
@@ -788,13 +478,13 @@ anova(mod1, mod2)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-For a nested F-Test, the null hypothesis is that the coefficients of all the additonal predictors is zero. The alternative hypothesis is that at least one of the coefficients of the additional predictors is not zero. The F-statistic is 12.002, which is not equal to one, indicating we should reject the null hypothesis. The p-value of 0.001361 is significant so we can reject the null hypothsis. In other words, the addition of the mileage term is a significant improvement in predicting the price of a Honda Accord.
+For a nested F-Test, the null hypothesis is that the coefficients of all the additonal predictors is zero. The alternative hypothesis is that at least one of the coefficients of the additional predictors is not zero. The F-statistic is 12.002, which is not equal to one, indicating we should reject the null hypothesis. A p-value of 0.001361 is significant so we can reject the null hypothsis. In other words, the addition of the mileage term to our simple linear model is a significant improvement in predicting the price of a Honda Accord.
 
 **Model \#2 is better than Model \#1.**
 
 ------------------------------------------------------------------------
 
-Now let us compare our best Model \#3 (quadratic) to Model \#4 (complete second order)
+We compare our best polynomial Model \#3 (quadratic) to Model \#4 (complete second order).
 
 ``` r
 anova(mod3, mod4)
@@ -810,13 +500,13 @@ anova(mod3, mod4)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-For a nested F-Test, the null hypothesis is that the coefficients of all the additonal predictors is zero. The alternative hypothesis is that at least one of the coefficients of the additional predictors is not zero. The F-statistic is 4.7448, which is not equal to one, indicating we should reject the null hypothesis. The p-value of 0.007187 is significant so we can reject the null hypothsis. In other words, the addition of the terms that involve mileage is a significant improvement in predicting the price of a Honda Accord.
+The F-statistic is 4.7448, which is not equal to one, indicating we should reject the null hypothesis. A p-value of 0.007187 is significant so the addition of the terms that involve mileage is a significant improvement to our quadratic model in predicting the price of a Honda Accord.
 
 **Model \#4 is better than Model \#3.**
 
 ------------------------------------------------------------------------
 
-Now let us compare Model \#2 (multiple linear) to Model \#4 (complete second order)
+We finally compare Model \#2 (multiple linear) to Model \#4 (complete second order).
 
 ``` r
 anova(mod2, mod4)
@@ -830,12 +520,116 @@ anova(mod2, mod4)
     ## 1     37 785.37                           
     ## 2     34 710.88  3    74.489 1.1876  0.329
 
-For a nested F-Test, the null hypothesis is that the coefficients of all the additonal predictors is zero. The alternative hypothesis is that at least one of the coefficients of the additional predictors is not zero. The F-statistic is 1.1876, which is very close to one, indicating that the null hypothesis is true. In other words, the addition of the quadratic and interaction terms is not an improvement over our multiple linear regression model in predicting the price of a Honda Accord. Sometimes, simpler is just better.
+The F-statistic is 1.1876, which is very close to one, indicating that the null hypothesis is true. In other words, the addition of the quadratic and interaction terms is not an improvement over our multiple linear regression model in predicting the price of a Honda Accord. Sometimes, simpler is just better.
 
 **Model \#2 is better than Model \#4. Thus, Model \#2 is the best out of our four models.**
 
-Part 2
-======
+------------------------------------------------------------------------
+
+Final Model Evaluation
+----------------------
+
+### Residual Analysis
+
+Now that we have our final model (`price ~ age + mileage`), we first analyze the residuals to check the assumptions made for a multiple linear regression model. We first look at a residuals vs fits plot to check for linearity and constant variance of residuals.
+
+``` r
+# Residuals vs fits plot
+plot(mod2$residuals ~ mod2$fitted.values)
+abline(a = 0, b = 0)
+```
+
+![](report_code_files/figure-markdown_github/unnamed-chunk-23-1.png)
+
+``` r
+# Standardized residuals vs fits plot
+plot(rstandard(mod2) ~ mod2$fitted.values)
+abline(a = 0, b = 0)
+```
+
+![](report_code_files/figure-markdown_github/unnamed-chunk-23-2.png)
+
+``` r
+# Boxplot of residuals
+boxplot(mod2$residuals)
+```
+
+![](report_code_files/figure-markdown_github/unnamed-chunk-23-3.png)
+
+The residuals versus fits plot is useful in assessing the linearity of a model. Ideally, we would want to see a random pattern with points scattered at a constant distance from the line. However, the plot shows a slight curve moving from the left to right throughout the data set. Furthermore, a lot of the data seems to be clumped at the right side of the graph. This signifies that linearity does not hold too well in our model and variance is not constant.
+
+We then looked at a standarized residual vs fits plot to check for potential outliers. There is a point close to a value of three, indicating that it can be an outlier since it is close to three standard deviations from 0. The boxplot confirms that there is one outlier point; you can see it is roughly more than 1.5 IQR's beyond Q3.
+
+------------------------------------------------------------------------
+
+We look at a normal quantile plot and histogram of residuals to check for normality of residuals in our model.
+
+``` r
+# Residual histogram
+hist(mod2$residuals)
+```
+
+![](report_code_files/figure-markdown_github/unnamed-chunk-24-1.png)
+
+``` r
+# Normal quantile plot
+qqnorm(mod2$residuals)
+qqline(mod2$residuals)
+```
+
+![](report_code_files/figure-markdown_github/unnamed-chunk-24-2.png)
+
+The histogram of the residuals shows that there is a distinct right skew. This pattern is also seen in the normal quantile plot; there are many points to the right of 0 that do not mirror the line, indicating that the residuals aren't normally distributed.
+
+------------------------------------------------------------------------
+
+We then look at the standarized and studentized maximum residual to evaluate the potential outlier we saw from our boxplot earlier.
+
+``` r
+# Max residual, standarized, and studentized
+max(abs(residuals(mod2)))
+```
+
+    ## [1] 15.03922
+
+``` r
+max(abs(rstandard(mod2)))
+```
+
+    ## [1] 3.321223
+
+``` r
+max(abs(rstudent(mod2)))
+```
+
+    ## [1] 3.910369
+
+The car with the largest residual has a residual with magnitude 15. The standarized residual for this car is 3.32, which is close to 3, and draws our concern that it could be a potential outlier. The studentized residual for this same point is 3.91, which somewhat differs from the standarized residual. This means that when we take out this point, the fit of the model does change a noticeable amount. Thus, our point can be considered as an outlier; we decide to leave our point in the model since it is less than 3% of our total data.
+
+### Final Prediction
+
+After some residual analysis, we finally get to use our model to predict the value of Honda Accord. I am looking for about a 5-year old Accord with no more than 40,000 miles.
+
+``` r
+# Calculate the predicted value of a 5-year old Honda Accordwith 40,000 miles
+newx = data.frame(age = 5, mileage = 40)
+predict.lm(mod2, newx, interval = "confidence", level = .90)
+```
+
+    ##      fit      lwr      upr
+    ## 1 32.649 31.30714 33.99086
+
+``` r
+predict.lm(mod2, newx, interval = "prediction", level = .90)
+```
+
+    ##      fit      lwr      upr
+    ## 1 32.649 24.76128 40.53672
+
+The predicted value of the `price` for a 5 year old Honda Accord with 40,000 miles is approximately $32,649. The 90% confidence interval for the mean `price` of a Honda Accord with these traits is (31.30714, 33.99086). The 90% prediction interval for the mean `price` of an individual Honda Accord with these traits is (24.76128, 40.53672). Knowing these intervals, now I know what price range I should be looking for when purchasing my Honda Accord!
+
+Part 2: General Car Price Analysis
+==================================
 
 We first take subsets from UsedCarLot and added two new variables called `country` and `type`.
 
@@ -874,23 +668,23 @@ head(UsedCar)
     ## 5     5  29.0   23.4  328   BMW    2014 Germany Sedan
     ## 6     4  28.0   17.8  328   BMW    2015 Germany Sedan
 
-One Way ANOVA
--------------
+Car Models and Price
+--------------------
 
-Goal: Do different model cars have a different mean price? In order to conduct one-way ANOVA, we usually have to assume constant variance throughout the different models of cars. We investigate the means and variance through a boxplot.
+We want to determine if different used car models have different prices. In order to find out whether certain car models have a higher price, we conduct one-way ANOVA between `model` and `price`. One-way ANOVA assumes constant variance throughout the sample so we must first investigate the variance of means using a boxplot.
 
 ``` r
 # Boxplot between model and price
-boxplot(price~model, data = UsedCar)
+boxplot(price ~ model, data = UsedCar)
 ```
 
-![](report_code_files/figure-markdown_github/unnamed-chunk-35-1.png)
+![](report_code_files/figure-markdown_github/unnamed-chunk-28-1.png)
 
-At first glance, you can see that the mean price for the BMW X3 is a lot higher than the rest of the mean prices of the car models, which all are hovering around a similar mean price. Our guess for now is that different car models do have differing mean prices. It's also pretty clear from the boxplot that variance is not constant throughout the differing models. Our one-way ANOVA may be slightly inaccurate as a result of this.
+We can see that the mean price for the BMW X3 is a lot higher than the rest of the mean prices of the car models, which all are hovering around a similar mean price. Our guess for now is that different car models do have differing mean prices due to the X3. It's also pretty clear from the boxplot that variance is not constant throughout the differing models. Our one-way ANOVA may be slightly inaccurate as a result of this.
 
 ------------------------------------------------------------------------
 
-We check the standard deviations for the various models and compare it to the average standard deviation of price.
+To take a closer look at variance, we check the standard deviations for each individual model and compare it to the average standard deviation throughout the entire sample.
 
 ``` r
 # Standard deviation for individual models
@@ -911,27 +705,14 @@ This data backs up our boxplot analysis earlier since X3 has a much larger stand
 
 ------------------------------------------------------------------------
 
-We now examine the mean price for the entire sample to compare to our individual mean prices with the non-constant variance in mind.
+We initially answer our question heuristically, by comparing the mean price of the entire sample to the individual mean prices of the different models.
 
 ``` r
-# Summary to see average mean price
-summary(UsedCar)
+# Average mean price of entire sample
+mean(UsedCar$price)
 ```
 
-    ##       age             price           mileage           model          
-    ##  Min.   : 2.000   Min.   : 2.695   Min.   :  1.072   Length:210        
-    ##  1st Qu.: 4.000   1st Qu.:14.809   1st Qu.: 26.020   Class :character  
-    ##  Median : 5.000   Median :21.625   Median : 41.464   Mode  :character  
-    ##  Mean   : 6.305   Mean   :23.618   Mean   : 55.459                     
-    ##  3rd Qu.: 8.000   3rd Qu.:29.999   3rd Qu.: 73.085                     
-    ##  Max.   :20.000   Max.   :76.795   Max.   :205.194                     
-    ##      make                year        country              type          
-    ##  Length:210         Min.   :1999   Length:210         Length:210        
-    ##  Class :character   1st Qu.:2011   Class :character   Class :character  
-    ##  Mode  :character   Median :2014   Mode  :character   Mode  :character  
-    ##                     Mean   :2013                                        
-    ##                     3rd Qu.:2015                                        
-    ##                     Max.   :2017
+    ## [1] 23.6179
 
 ``` r
 # Mean prices of each model
@@ -945,10 +726,10 @@ The average mean price for the entire data set is 23.618 thousand dollars. The m
 
 ------------------------------------------------------------------------
 
-Let us finally conduct the one-way ANOVA for model and price.
+Let us finally conduct the one-way ANOVA for `model` and `price` to see if our earlier analysis is correct.
 
 ``` r
-# one-way ANOVA test
+# One-way ANOVA test
 mod5 = aov(price ~ model, data = UsedCar)
 summary(mod5)
 ```
@@ -959,18 +740,26 @@ summary(mod5)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-The null hypothesis is that all the means for each car model price are equal to one another. The alternative hypothesis is that at least one mean of a car model is not equal to any of the means of the other car models. The non-zero F-value of 12.45 and small significant P-value of 1.48e-10 allows us to reject the null hypothesis. Thus, the alternative hypothesis is true and there is a significant difference among the mean prices of the car models, proving our earlier analysis correct.
+The null hypothesis for one-way ANOVA is that all the means for each car model price are equal to one another. The alternative hypothesis is that at least one mean of a car model is not equal to any of the means of the other car models. The non-zero F-value of 12.45 and significant p-value of 1.48e-10 allows us to reject the null hypothesis. Thus, the alternative hypothesis is true, and there is a significant difference among the mean prices of the car models, proving our earlier analysis correct.
 
 ------------------------------------------------------------------------
 
-Let us look at the residuals for this model.
+Before we find out if the BMW X3 is the car with the different mean price, we must first check the assumptions for our one-way ANOVA test. For the test to be accurate, the sample must have constant variance throughout each group and the sample must be normally distributed. We check these traits through residual analysis of the model that our `aov` function fit earlier.
+
+``` r
+# Residuals vs fits plot
+plot(mod5$residuals ~ mod5$fitted.values)
+abline(0,0)
+```
+
+![](report_code_files/figure-markdown_github/unnamed-chunk-32-1.png)
 
 ``` r
 # Residual histogram
 hist(mod5$residuals)
 ```
 
-![](report_code_files/figure-markdown_github/unnamed-chunk-39-1.png)
+![](report_code_files/figure-markdown_github/unnamed-chunk-32-2.png)
 
 ``` r
 # Normal quantile plot
@@ -978,27 +767,17 @@ qqnorm(mod5$residuals)
 qqline(mod5$residuals)
 ```
 
-![](report_code_files/figure-markdown_github/unnamed-chunk-39-2.png)
+![](report_code_files/figure-markdown_github/unnamed-chunk-32-3.png)
 
-The histogram of the residuals show that the normality of the model is not perfect since there is left skew. The normality is explored further in the normal quantile plot that shows many of the negative residual points not lining perfectly with the line.
+The residuals vs fits plot shows that the standard deviation for four of the six car models is between 15 - 20. Meanwhile, there are two groups that have a standard deviation of approximately 7 and 40. Overall, the variance is more inconsistent at larger fitted values. This lack of constant variance is mirrored by our boxplot from earlier.
 
-------------------------------------------------------------------------
+The histogram of the residuals shows that there is a slight left skew in our model. This defect in normality is again seen in the normal quantile plot where the negative residual points start to stray from the line.
 
-The residuals versus fits plot is useful in assessing the variance of the model.
-
-``` r
-# Residuals vs fits plot
-plot(mod5$residuals~mod5$fitted.values)
-abline(0,0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-40-1.png)
-
-The plot shows that the standard deviation for four of the six car models to be between 15 - 20. Meanwhile, there are two groups that have a standard deviation of approximately 7 and 40. Overall, the variance is more inconsistent at larger fitted values. This lack of constant variance is mirrored by our boxplot from earlier.
+Overall, variance and normality is slightly lacking in our model.
 
 ------------------------------------------------------------------------
 
-We run Tukey's HSD tests to see if any of the comparisons between two car model price means are statistically significant.
+Our one-way ANOVA test tells us that there is a significant difference in mean prices between different car models. We run Tukey's HSD tests to see exactly which car model prices are significantly different.
 
 ``` r
 # TukeyHSD
@@ -1028,12 +807,18 @@ TukeyHSD(mod5)
     ## X3-LaCrosse       17.6092857   9.9881182 25.230453 0.0000000
     ## X3-Rav4           17.1058857   9.4847182 24.727053 0.0000000
 
-The X3 and the 328 have a difference of approximately 13 thousand dollars in mean price. We are 95% confident that that difference is between 5.6359182 and 20.878253 thousand dollars. The P value is 0.0000177, which is significant, meaning that the comparison is significant. If we follow this methodology, about half of the comparisons are significant.
+The p adj column tells us which of the comparisons between the mean prices of two different models are significant. For example, the mean price for a X3 is 13 thousand dollars more than the mean price of a 328. We are 95% confident that that difference is between 5.6359182 and 20.878253 thousand dollars.
 
-Two Way ANOVA
--------------
+-   **BMW X3:** We see that all the BMW X3 comparisons have a significant p adj value that is less than 0.05, indicating that the mean price for BMW X3 is different than the mean price of all the other models.
 
-Goal: Do different type of cars from different countries have a different mean price? This time we dive straight into the two-way ANOVA.
+-   **Honda Accord:** The only other two comparisons that have a significant p adj value are between LaCrosse-Accord and Rav4-Accord. I am surprised to see that the Honda Accord actually has a higher mean price of about 9 thousand dollars in both comparisons.
+
+After this final analysis on car model mean prices, we see that the BMW X3 clearly has a different mean price comparatively to other car models. This does not surprise us since the BMW X3 is known as a luxury SUV model that should cost more.
+
+Car Manufacturer and Type
+-------------------------
+
+After finding out which car models have a different mean price, we also would like to see if type of car and country of car manufacturer impacts the mean price of a vehicle. We will be using a two-way ANOVA with `type` and `country` as the predictors to find out if there is a difference in mean price between any of the groups. This time we skip the preliminary variance and mean analysis and dive straight into the test.
 
 ``` r
 # Two-way ANOVA test
@@ -1048,11 +833,45 @@ summary(mod6)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-The null hypothesis is that all means are equal to each other. The alternative hypothesis is that at least one of the means is not equal to the other means. For the explanatory variable of `type`, a non-zero F value and an insignificant P value of 0.064305 indicates that we fail to reject the null hypothesis. Thus, the null hypothesis is true and all the different type of cars have the same mean price. For the explanatory variable of `country`, a non-zero F value and a significant P value of 0.000203 indicates that we can reject the null hypothesis. Thus, the alternative hypothesis is true and there is significant difference in the mean price of cars due to country of manufacture.
+For a two-way ANOVA test, the null hypothesis is that all means are equal to each other. The alternative hypothesis is that at least one of the means is not equal to the other means.
+
+-   `type`: A non-zero F value and an insignificant p value of 0.064305 indicates that we fail to reject the null hypothesis. Thus, the null hypothesis is true indicating that SUVs and sedans have the same mean price. This might seem unrealistic at first, but keep in mind that the p-value is right outside the 5% criterion we placed on the test. If we set the criterion at 10%, there would be a difference in SUVs and sedan prices.
+-   `country`: A non-zero F value and a significant p value of 0.000203 indicates that we can reject the null hypothesis. Thus, the alternative hypothesis is true, and there is a significant difference in the mean price of cars due to country of manufacture.
 
 ------------------------------------------------------------------------
 
-We run a TukeyHSD to see whether any of the comparisons between means of different cars are significant.
+Now let us check the assumptions of constant variance and normality for a two-way ANOVA test through some residual analysis.
+
+``` r
+# Residuals vs fits plot
+plot(mod6$residuals ~ mod6$fitted.values)
+abline(0,0)
+```
+
+![](report_code_files/figure-markdown_github/unnamed-chunk-35-1.png)
+
+``` r
+# Residual histogram
+hist(mod6$residuals)
+```
+
+![](report_code_files/figure-markdown_github/unnamed-chunk-35-2.png)
+
+``` r
+# Normal quantile plot
+qqnorm(mod6$residuals)
+qqline(mod6$residuals)
+```
+
+![](report_code_files/figure-markdown_github/unnamed-chunk-35-3.png)
+
+The variance seems to be pretty inconsistent throughout the residuals vs fits plot. Moving from left to right, the variance starts large, shrinks, then blooms out again.
+
+The histogram of the residuals reveals a slight right skew. The normality is explored further in the normal quantile plot that shows many of the residuals on the right side of the plot not sticking to the line. We also see some of the more extreme negative residuals straying from the line on the left side.
+
+------------------------------------------------------------------------
+
+Now we run a TukeyHSD to see exactly which car groups have a significant difference in price based on `type` or `country`.
 
 ``` r
 # TukeyHSD
@@ -1074,49 +893,16 @@ TukeyHSD(mod6)
     ## US-Germany    -8.322857 -13.11011 -3.535608 0.0001722
     ## US-Japan      -2.512400  -7.29965  2.274850 0.4316357
 
-In this case, there is a significant difference in mean prices between Japanese and German manufactured cars, and US and German manufactured cars. However, there is not a significant difference in means between US and Japanese manufactured cars.
+-   `type`: As seen from our two-way ANOVA test earlier, SUVs and sedans don't have a significant difference in price.
+
+-   `country`: For country of manufacturer, we see that German cars have a significant difference in prices compared to US and Japanese cars where German cars are on average 8,000 and 6,000 dollars more expensive. Keep in mind that we only have a limited selection of car models that this data is taken from, and the BMW X3 luxury model we saw earlier could be a hidden variable that is causing this difference here.
 
 ------------------------------------------------------------------------
 
-We do some residual analysis like before to verify the model.
+Since I find the fact that Sedans and SUVs have an insignificant difference in price unrealistic, I add an interaction term `type*country` to our model to see if this makes that difference significant.
 
 ``` r
-# Residual histogram
-hist(mod6$residuals)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-44-1.png)
-
-``` r
-# Normal quantile plot
-qqnorm(mod6$residuals)
-qqline(mod6$residuals)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-44-2.png)
-
-The histogram of the residuals this time reveal a slight right right skew. The normality is explored further in the normal quantile plot that shows many of the negative residual points not lining perfectly with the line.
-
-------------------------------------------------------------------------
-
-More importantly, we want to investigate the variance again through a residuals vs fits plot.
-
-``` r
-# Residuals vs fits plot
-plot(mod6$residuals~mod6$fitted.values)
-abline(0,0)
-```
-
-![](report_code_files/figure-markdown_github/unnamed-chunk-45-1.png)
-
-Variance seems to be pretty poor throughout this residuals vs fitted plot. Moving from left to right, the variance starts large, shrinks, then blooms out again.
-
-------------------------------------------------------------------------
-
-We will investigate how adding an interacdtion term `type*country` affects our analysis.
-
-``` r
-# ANOVA test
+# two-way ANOVA test
 mod7 = aov(price ~ type + country + type*country, data = UsedCar)
 summary(mod7)
 ```
@@ -1129,11 +915,11 @@ summary(mod7)
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-The null hypothesis is that all the difference in explanatory variable means is zero. The alternative hypothesis is that at least one of the difference in explanatory variable means is not zero. Since all variables have a non-zero F value and a significant P value we can reject the null hypothesis and say that there is significant difference in the mean types of cars with this model. Adding an interaction term seems to be the best model out of the three that we have created.
+This time we see that all the predictors have a non-zero F value and a significant p value, including car type. This means that we can reject the null hypothesis and say that there is significant difference in the mean price between SUVs and sedans.
 
 ------------------------------------------------------------------------
 
-We conduct a TukeyHSD to check if our individual comparisons were significant.
+We conduct a TukeyHSD to once again check our individual comparisons for mean price.
 
 ``` r
 # TukeyHSD
@@ -1173,36 +959,40 @@ TukeyHSD(mod7)
     ## SUV:US-SUV:Japan            4.8123714  -2.808796 12.4335390 0.4573468
     ## SUV:US-Sedan:US             5.3157714  -2.305396 12.9369390 0.3421035
 
-The Tukey HSD indicates that there is a significant difference of approximately 3.8 thousand dollars between SUV and Sedan prices. There is also a significant difference in prices between Japan and Germany manufactured cars, and US and Germany manufactured cars, but not US and Japanese cars. For the interaction predictor, most of the signficant difference in means occur between the German manufactured SUV (BMW X3) and any other car model.
+-   `type`: The Tukey HSD indicates that there is a significant difference in price of approximately 3,000 dollars between SUV and Sedan prices.
+-   `country`: We again see that German cars are more expensive comparatively to US and Japanese cars.
+-   `type*country`: As for the new interaction predictor, we are not surprised to again see German manufactured cars to have a signficant difference in mean price compared with any other car. However, this time we get to see that it is particularly German SUVs that have a difference in price compared to other cars. The only German SUV we have in our dataset is the BMW X3, which we already saw from our one-way ANOVA to have a difference in price compared to any other model. This confirms our suspicions from our last model that the BMW X3 is responsible for why German cars were more expensive than other cars in our models.
 
 ------------------------------------------------------------------------
 
-We visualize these comparisons through an interaction plot.
+We visualize the comparisons between `type` and `country` through an interaction plot.
 
 ``` r
 # Interaction plot
 interaction.plot(UsedCar$type, UsedCar$country, UsedCar$price)
 ```
 
-![](report_code_files/figure-markdown_github/unnamed-chunk-48-1.png)
+![](report_code_files/figure-markdown_github/unnamed-chunk-39-1.png)
 
 ``` r
 interaction.plot(UsedCar$country, UsedCar$type, UsedCar$price)
 ```
 
-![](report_code_files/figure-markdown_github/unnamed-chunk-48-2.png)
+![](report_code_files/figure-markdown_github/unnamed-chunk-39-2.png)
 
-The interaction plot between car price and car type shows that the price for SUVS is greater than that of sedans for US and German cars. Specifically, German SUVS are a lot more expensive compared to its sedan counterparts. However, Japanese SUVs are actually cheaper than Japanese sedans.
+The first interaction plot shows that the price for SUVs is greater than that of sedans for US and German cars. Specifically, German SUVs are a lot more expensive compared to its sedan counterparts. However, Japanese SUVs are actually cheaper than Japanese sedans.
 
-The interaction plot between car price and country of manufacture shows in terms of SUVS, German SUVs are the most expensive, followed by US SUVS, and last are Japanese SUVS. In terms of sedans, Japanese sedans are the most expensive, followed by German sedans, and last are US sedans.
+The second interaction plot shows that in terms of SUVs, German SUVs are the most expensive, followed by US SUVs, and lastly Japanese SUVs. In terms of sedans, Japanese sedans are the most expensive, followed by German sedans, and lastly US sedans.
+
+At this point, it is pretty apparent that our limited selection of six car models greatly influences our analysis; we will discuss this further in our conclusion.
 
 Conclusion
 ==========
 
 **Part 1:**
 
-After testing out various regression models, the nested F-test helped us determine that Model \#2, the multiple linear regression model, was the best model in predicting Honda Accord prices using mileage and age.
+After testing out various regression models, the nested F-test helped us determine that Model \#2, the multiple linear regression model, was the best model in predicting Honda Accord prices using `mileage` and `age`. Sometimes simpler is better! We should keep in mind that our dataset was fairly small for our analysis and that having a bigger set would allow us to fit a better model in predicting Honda Accord prices.
 
 **Part 2:**
 
-Our one-way ANOVA test showed us that different car models had different mean prices; our two-way ANOVA test showed us that different types of cars from different countries of manufacture also have different mean prices.
+We found out that different car models do have different mean prices, specifically that the BMW X3 has a different price comparatively to the rest. The BMW X3 luxury model heavily influenced our two-way ANOVA test, which suggested that German cars were more expensive than any other car. Since the BMW X3 is one of two German car models in the set, it greatly influenced any further analysis that we did for car `type` and `country`.
